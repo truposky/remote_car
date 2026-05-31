@@ -1,0 +1,6 @@
+build
+!.vscode/*
+.git-local/
+.claude/settings.local.json
+.codex/
+.agents/
