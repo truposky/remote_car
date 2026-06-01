@@ -48,7 +48,7 @@ void Control::move_forward(int pwm_value)
 {
     this->set_motor_pwm(MOTOR1_INA, pwm_value);
     this->set_motor_pwm(MOTOR1_INB, 0);
-    this->set_motor_pwm(MOTOR2_INA, pwm_value);
+    this->set_motor_pwm(MOTOR2_INA, static_cast<int>(pwm_value * MOTOR2_BALANCE));
     this->set_motor_pwm(MOTOR2_INB, 0);
 }
 
@@ -57,7 +57,7 @@ void Control::move_backward(int pwm_value)
     this->set_motor_pwm(MOTOR1_INA, 0);
     this->set_motor_pwm(MOTOR1_INB, pwm_value);
     this->set_motor_pwm(MOTOR2_INA, 0);
-    this->set_motor_pwm(MOTOR2_INB, pwm_value);
+    this->set_motor_pwm(MOTOR2_INB, static_cast<int>(pwm_value * MOTOR2_BALANCE));
 }
 
 void Control::drive_from_throttle(int16_t throttle)

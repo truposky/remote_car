@@ -1,6 +1,7 @@
 set(CAR_SRC
     main.cpp
     control_motors/control.cpp
+    servo/servo.cpp
     encoder/encoder.cpp
     ${CMAKE_SOURCE_DIR}/common/NRF24_communication/communication.cpp
     ${CMAKE_SOURCE_DIR}/common/live_pulse/livePulse.cpp

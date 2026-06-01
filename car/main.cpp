@@ -17,6 +17,7 @@
 //car
 #include "pinOut.h"
 #include "control_motors/control.h"
+#include "servo/servo.h"
 
 //global variables
 SPI spi;
@@ -53,6 +54,7 @@ bool try_init_radio() {
 bool setup() {
     live_pulse.init_live_pulse();
     motor_control.init_pin();
+    servo_init(SERVO_PIN);
 
     // Wait up to 3s for a USB host to open the CDC port, so debug prints
     // aren't lost if we're in the bench. If nothing connects, boot anyway.
@@ -80,24 +82,23 @@ void loop() {
         return;
     }
 
-    while (nrf24_communication::receive_command(radio, command)) { //returns true if there is packet in the fifo
+    while (nrf24_communication::receive_command(radio, command)) {
       last_packet_time = get_absolute_time();
     }
-    int64_t time_between_packets = absolute_time_diff_us(last_packet_time,get_absolute_time());
+    int64_t time_between_packets = absolute_time_diff_us(last_packet_time, get_absolute_time());
 
-    if(time_between_packets>MAXIMUM_TIME_BETWEEN_PACKETS) {
+    if (time_between_packets > MAXIMUM_TIME_BETWEEN_PACKETS) {
         motor_control.stop_all_motors();
+        servo_center();
+        printf("[TIMEOUT] no packet for %lld us\n", time_between_packets);
         sleep_ms(50);
         return;
     }
-    if (command.buttons & 0b00000001) {
-        //button 1 is pressed
-    }
-    if (command.steering > 0) {
-        //steering right
-    } else if (command.steering < 0) {
-        //steering left
-    }
+
+    printf("steer=%d throttle=%d btn=%u\n",
+           command.steering, command.throttle, command.buttons);
+
+    servo_set_position(command.steering);
     motor_control.drive_from_throttle(command.throttle);
     sleep_ms(50);
 }

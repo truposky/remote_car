@@ -10,6 +10,7 @@ constexpr int MOTOR_PWM_MAX = 255;
 constexpr int MOTOR_PWM_MIN = 90;
 constexpr float MOTOR_PWM_CLK_DIV = 24.0f; // About 20 kHz with a 125 MHz sys clock and 8-bit wrap.
 constexpr int THROTTLE_MAX = 1000;
+constexpr float MOTOR2_BALANCE = 0.85f; // izquierdo va más rápido, reducir hasta igualar
 
 class Control {
     public:

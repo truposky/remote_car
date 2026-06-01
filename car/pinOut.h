@@ -9,12 +9,14 @@ constexpr uint32_t SPI_SCK = 14;
 constexpr uint32_t SPI_MOSI = 11;
 constexpr uint32_t NRF24_CE = 13;
 
-//Motor A
+//Motor A RIGHT
 constexpr uint MOTOR1_INA = 2;
 constexpr uint MOTOR1_INB = 3;
-//Motor B
+//Motor B LEFT
 constexpr uint MOTOR2_INA = 4;
 constexpr uint MOTOR2_INB = 5;
+//Servo dirección
+constexpr uint SERVO_PIN = 8;
 //Encoder A
 constexpr uint ENCODER1_A = 10;
 constexpr uint ENCODER1_B = 6;

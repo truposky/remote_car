@@ -9,7 +9,6 @@
 #include "pico/time.h"
 #include <RF24.h>
 #include <tusb.h>
-// libraries 
 #include "hardware/adc.h"
 //common
 #include "livePulse.h"
@@ -19,12 +18,15 @@
 //controller
 #include "pinOut.h"
 #include "joystick.h"
+#include "pinout.h"
 
 SPI spi;
 RF24 radio(NRF24_CE, NRF24_CSN);
 LivePulse live_pulse;
+controller::Joystick steer_stick(controller::VRX, controller::VRX_ADC);
+controller::Joystick throttle_stick(controller::VRY, controller::VRY_ADC);
+
 bool setup () {
-    // Wait briefly for serial debug, but still boot when running from battery.
     absolute_time_t deadline = make_timeout_time_ms(3000);
     while (!tud_cdc_connected() && !time_reached(deadline)) {
         sleep_ms(10);
@@ -37,25 +39,40 @@ bool setup () {
     }
     live_pulse.init_live_pulse();
     nrf24_communication::init_radio_tx(radio);
-    controller::joystick_init();
+
+    adc_init();
+    steer_stick.init();
+    throttle_stick.init();
+    printf("JOYSTICK x_gpio=%u x_adc=%u y_gpio=%u y_adc=%u\n",
+           controller::VRX, controller::VRX_ADC,
+           controller::VRY, controller::VRY_ADC);
+    printf("CENTER steer=%u throttle=%u\n",
+           steer_stick.get_center(), throttle_stick.get_center());
+
+    gpio_init(controller::SW);
+    gpio_set_dir(controller::SW, GPIO_IN);
+    gpio_pull_up(controller::SW);
 
     return true;
 }
 
 void loop() {
-    auto read = controller::joystick_read();
+    int16_t steer_val = steer_stick.read();
+    int16_t throttle_val = throttle_stick.read();
+    bool pressed = (gpio_get(controller::SW) == 0);
 
     RC_Command cmd;
-    cmd.steering = read.x;
-    cmd.throttle = read.y;
-    cmd.buttons  = read.pressed ? 0x01 : 0x00;   // bit 0 = turbo
+    cmd.steering = steer_val;
+    cmd.throttle = -throttle_val;
+    cmd.buttons  = pressed ? 0x01 : 0x00;
 
-    printf("steer=%d throttle=%d btn=%u\n", cmd.steering, cmd.throttle, cmd.buttons);
+    printf("raw_x=%u raw_y=%u | steer=%d throttle=%d btn=%u\n",
+           steer_stick.get_raw(), throttle_stick.get_raw(),
+           cmd.steering, cmd.throttle, cmd.buttons);
+
     if (!nrf24_communication::send_command(radio, cmd)) {
         printf("problem sending command\n");
     }
     live_pulse.change_live_pulse();
     sleep_ms(50);
 }
-// Resume this session with:───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-// claude --resume f00b870c-77cc-48cd-99bb-686cf972c523  

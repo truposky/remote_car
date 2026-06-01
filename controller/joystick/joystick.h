@@ -1,23 +1,29 @@
 #pragma once
 
-#include <stdint.h>
+#include "pico/stdlib.h"
+#include <cstdint>
 
 namespace controller {
 
-// Reading from the joystick, already normalized.
-//   x, y   : -1000 (full negative) .. 0 (center) .. +1000 (full positive)
-//   pressed: true if the SW button is currently held down
-struct JoystickReading {
-    int16_t x;
-    int16_t y;
-    bool    pressed;
+class Joystick {
+public:
+    Joystick(uint gpio, uint adc_channel);
+    void init();
+    int16_t read();
+    uint16_t get_raw() const { return raw_; }
+    uint16_t get_center() const { return center_; }
+
+private:
+    static constexpr uint16_t ADC_MAX = 4095;
+    static constexpr int16_t OUTPUT_RANGE = 1000;
+    static constexpr int16_t DEAD_ZONE = 50;
+
+    int16_t normalize(uint16_t raw);
+
+    uint gpio_;
+    uint adc_channel_;
+    uint16_t center_;
+    uint16_t raw_;
 };
-
-// Configure ADC + SW GPIO. Call once from setup().
-void joystick_init();
-
-// Take a fresh sample from the joystick and return it already mapped
-// to the -1000..+1000 range with a dead-zone around the center.
-JoystickReading joystick_read();
 
 }
